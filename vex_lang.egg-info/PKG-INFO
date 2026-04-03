@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: vex-lang
+Version: 0.1.0
+Summary: A Python-powered language with Hinglish/English dual mode
+Author-email: Sohail Ali <sohailali8480@gmail.com>
+License: MIT
+Project-URL: Homepage, https://github.com/sohailcodes-ai/Vex-Lang
+Keywords: programming-language,hinglish,python,transpiler
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown

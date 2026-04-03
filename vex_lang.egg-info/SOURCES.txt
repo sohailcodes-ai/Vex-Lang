@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+vex/__init__.py
+vex/cli.py
+vex/keywords.py
+vex/lexer.py
+vex/parser.py
+vex/runner.py
+vex/transpiler.py
+vex_lang.egg-info/PKG-INFO
+vex_lang.egg-info/SOURCES.txt
+vex_lang.egg-info/dependency_links.txt
+vex_lang.egg-info/entry_points.txt
+vex_lang.egg-info/top_level.txt

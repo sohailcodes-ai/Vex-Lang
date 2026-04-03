@@ -1,0 +1,5 @@
+#mode hinglish
+
+naam = "Sohail"
+bolo ("Yo Duniya!")
+bolo ("Mera naam {naam} hai")
