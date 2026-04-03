@@ -1,0 +1,26 @@
+<svg width="500" height="500" viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #111111; }
+      .v-left { fill: #ff4500; }
+      .v-right { fill: #ff6a00; }
+      .glow-line { stroke: #ff4500; stroke-width: 1.5; fill: none; opacity: 0.3; }
+      .corner { fill: none; stroke: #ff4500; stroke-width: 2; }
+    </style>
+  </defs>
+  <circle cx="340" cy="340" r="300" class="bg" stroke="#ff4500" stroke-width="2"/>
+  <polyline points="100,140 100,100 140,100" class="corner"/>
+  <polyline points="540,100 580,100 580,140" class="corner"/>
+  <polyline points="100,540 100,580 140,580" class="corner"/>
+  <polyline points="580,540 580,580 540,580" class="corner"/>
+  <line x1="190" y1="200" x2="190" y2="480" class="glow-line"/>
+  <line x1="340" y1="200" x2="340" y2="480" class="glow-line"/>
+  <line x1="490" y1="200" x2="490" y2="480" class="glow-line"/>
+  <line x1="160" y1="290" x2="520" y2="290" class="glow-line"/>
+  <line x1="160" y1="390" x2="520" y2="390" class="glow-line"/>
+  <polygon points="180,180 260,180 340,420 280,420" class="v-left"/>
+  <polygon points="500,180 420,180 340,420 400,420" class="v-right"/>
+  <polygon points="160,370 240,370 520,240 440,240" fill="#ff4500" opacity="0.85"/>
+  <polygon points="340,450 358,480 340,510 322,480" fill="#ff6a00"/>
+  <rect x="230" y="168" width="220" height="6" rx="3" fill="#ff4500" opacity="0.6"/>
+</svg>
