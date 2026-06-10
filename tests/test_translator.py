@@ -40,7 +40,7 @@ class TestHinglishTranslation(unittest.TestCase):
         source = '#mode hinglish\n\nnaam = "Sohail"\nbolo "Yo {naam}!"'
         result = transpile(source)
         self.assertIn('naam = "Sohail"', result)
-        self.assertIn('print f"Yo {naam}!"', result)
+        self.assertIn('print(f"Yo {naam}!")', result)
 
     def test_mode_directive_stripped(self):
         source = "#mode hinglish\n\nbolo \"hi\""

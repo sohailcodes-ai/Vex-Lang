@@ -39,20 +39,24 @@ def replace_hinglish_keywords(line: str) -> str:
 def normalize_print_syntax(line: str) -> str:
     """
     Supports:
-    print "Hello"  -> print("Hello")
-    print 'Hello'  -> print('Hello')
+    print "Hello"     -> print("Hello")
+    print f"Hello"   -> print(f"Hello")
+    print variable   -> print(variable)
+    print func(x)    -> print(func(x))
+    print(x)         -> print(x)
     """
-    line = re.sub(
-        r'\bprint\s+"([^"]*)"',
-        r'print("\1")',
-        line,
-    )
-    line = re.sub(
-        r"\bprint\s+'([^']*)'",
-        r"print('\1')",
-        line,
-    )
-    return line
+    stripped = line.lstrip()
+    indent = line[: len(line) - len(stripped)]
+
+    if not stripped.startswith("print "):
+        return line
+
+    value = stripped[len("print ") :].strip()
+
+    if value.startswith("("):
+        return line
+
+    return f"{indent}print({value})"
 
 
 def transpile(source: str) -> str:
