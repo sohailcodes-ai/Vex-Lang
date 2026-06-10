@@ -6,6 +6,7 @@ Vex CLI — registers the 'vex' command globally after pip install.
 Usage:
     vex run [file.vex]
     vex translate <file.vex>
+    vex tokens <file.vex>
     vex ast <file.vex>
     vex init <project_name>
     vex version
@@ -44,6 +45,7 @@ def _print_usage() -> None:
     print("Usage:")
     print("  vex run [file.vex]")
     print("  vex translate <file.vex>")
+    print("  vex tokens <file.vex>")
     print("  vex ast <file.vex>")
     print("  vex init <project_name>")
     print("  vex version")
@@ -89,6 +91,17 @@ def cmd_translate(filepath: str) -> None:
         return
 
     print(transpile(source))
+
+
+def cmd_tokens(filepath: str) -> None:
+    source = _read_vex_file(filepath)
+    if source is None:
+        return
+
+    tokens = tokenize(source)
+
+    for token in tokens:
+        print(f"{token.type.value}({token.value!r}) line={token.line}, col={token.column}")
 
 
 def cmd_ast(filepath: str) -> None:
@@ -153,6 +166,14 @@ def main() -> None:
             print("Usage: vex translate <file.vex>")
             return
         cmd_translate(sys.argv[2])
+        return
+
+    if command == "tokens":
+        if len(sys.argv) < 3:
+            print("[Vex] Error: file path do")
+            print("Usage: vex tokens <file.vex>")
+            return
+        cmd_tokens(sys.argv[2])
         return
 
     if command == "ast":

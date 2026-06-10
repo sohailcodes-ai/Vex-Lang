@@ -7,6 +7,7 @@ from vex.ast_nodes import (
     BinaryExpression,
     PrintStatement,
     IfStatement,
+    AssignmentStatement,
 )
 
 
@@ -79,6 +80,9 @@ class Parser:
         if token.type == TokenType.KEYWORD and token.value == "agar":
             return self.if_statement()
 
+        if token.type == TokenType.IDENTIFIER:
+            return self.assignment_statement()
+
         raise ParserError(
             f"Unexpected token {token.type.value}({token.value!r}) "
             f"at line {token.line}, column {token.column}"
@@ -92,6 +96,16 @@ class Parser:
         self.consume(TokenType.RIGHT_PAREN)
 
         return PrintStatement(value)
+
+    def assignment_statement(self):
+        target_token = self.consume(TokenType.IDENTIFIER)
+        self.consume(TokenType.OPERATOR, "=")
+        value = self.expression()
+
+        return AssignmentStatement(
+            target=Identifier(target_token.value),
+            value=value,
+        )
 
     def if_statement(self):
         self.consume(TokenType.KEYWORD, "agar")
