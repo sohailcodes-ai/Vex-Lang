@@ -1,47 +1,91 @@
-# Vex 🔥
+# Vex Language 🔥
 
-> A Python-powered programming language with Hinglish/English dual mode.
+> A transpiler-based programming language with Hinglish syntax, custom lexer, parser, AST generation, editor tooling, and Python code generation.
 
-Vex is not a replacement for Python. It's a more comfortable way to write it.
-Write code in Hinglish or English — Vex converts it to Python and runs it.
-Every library, every feature — nothing changes under the hood.
+Vex is a programming language designed to make coding more approachable for Hinglish-speaking developers while preserving the power of Python.
+
+Vex source code is transpiled into Python and executed using the Python runtime. Alongside transpilation, Vex includes its own lexer, parser, AST generation pipeline, CLI tooling, testing infrastructure, and editor integrations.
+
+---
 
 ## Why Vex?
 
-Python is powerful — but for many Indian beginners, English syntax is a barrier.
-Vex removes that barrier. Same Python power, just in a language that feels natural.
+Python is powerful, but many beginners are introduced to programming through a language they do not naturally think in.
 
-- Full Python ecosystem — NumPy, Pandas, everything works
-- Hinglish or English keywords — your choice
-- Auto f-strings — `{variable}` just works inside strings, no `f""` needed
-- Readable error messages
-- VSCode/Windsurf extension with syntax highlighting and run button
+Vex reduces that barrier.
 
-## Install
+Write code using Hinglish keywords while retaining access to the entire Python ecosystem.
+
+### Features
+
+* Hinglish and English modes
+* Python ecosystem compatibility
+* Custom Lexer
+* Custom Parser
+* AST Generation
+* Token Inspection
+* AST Inspection
+* Python Code Generation
+* Runtime Execution
+* VS Code Extension
+* Windsurf Support
+* PyPI Distribution
+* Automated Unit Tests
+* Auto f-string conversion
+
+---
+
+## Architecture
+
+Vex follows a compiler-inspired architecture.
+
+```text
+Vex Source
+     ↓
+Lexer
+     ↓
+Tokens
+     ↓
+Parser
+     ↓
+AST
+     ↓
+Python Code Generation
+     ↓
+Python Runtime
+```
+
+Although Vex currently transpiles to Python, it includes its own frontend language pipeline consisting of lexical analysis, parsing, and abstract syntax tree generation.
+
+---
+
+## Installation
 
 ```bash
 pip install vex-lang
 ```
 
-Python must be installed first.
+Python must be installed beforehand.
+
+---
 
 ## Quick Start
 
-Scaffold a new project:
+Create a new project:
 
 ```bash
 vex init my_app
 ```
 
-This creates:
+Generated structure:
 
-```
+```text
 my_app/
 ├── main.vex
 └── vex.toml
 ```
 
-`vex.toml` holds project settings:
+Example configuration:
 
 ```toml
 name = "my_app"
@@ -50,197 +94,395 @@ mode = "hinglish"
 entry = "main.vex"
 ```
 
-Run it from the project folder:
+Run project:
 
 ```bash
 cd my_app
 vex run
 ```
 
-Or pass a file directly:
+Or execute directly:
 
 ```bash
 vex run my_app/main.vex
-vex run examples/hello.vex
 ```
 
-## Your First File
+---
 
-Create a file called `hello.vex` and write:
+## Your First Program
 
-```
+```vex
 #mode hinglish
 
 naam = "Sohail"
+
 bolo "Yo {naam}!"
 
 agar True:
     bolo "Vex chal raha hai!"
 ```
 
-Run it:
+Run:
 
 ```bash
 vex run hello.vex
 ```
 
-To see the generated Python without running it:
-
-```bash
-vex translate examples/hello.vex
-```
-
 Output:
-```
+
+```text
 Yo Sohail!
 Vex chal raha hai!
 ```
+
+---
+
 ## Modes
 
-Declare mode on the first line of your file:
+Declare the mode at the top of your file.
 
+```vex
+#mode hinglish
 ```
-#mode hinglish    ← Hinglish keywords
-#mode english     ← English Python-like keywords
+
+or
+
+```vex
+#mode english
 ```
+
+---
+
 ## Keyword Reference
 
-| Vex (Hinglish) | Python |
-|----------------|--------|
-| `bolo` | `print` |
-| `agar` | `if` |
-| `warna` | `else` |
-| `warna_agar` | `elif` |
-| `jabtak` | `while` |
-| `har` | `for` |
-| `mai` | `in` |
-| `kaam` | `def` |
-| `wapas` | `return` |
-| `aao` | `import` |
-| `jaise` | `as` |
-| `pakdo` | `try` |
-| `chodo` | `except` |
-| `sahi` | `True` |
-| `galat` | `False` |
-| `kuch_nahi` | `None` |
-| `cheez` | `class` |
-| `khud` | `self` |
-| `aur` | `and` |
-| `ya` | `or` |
-| `nahi` | `not` |
-| `rok` | `break` |
-| `aage` | `continue` |
-| `chalne_de` | `pass` |
-## Real Example — With NumPy
+| Vex        | Python   |
+| ---------- | -------- |
+| bolo       | print    |
+| dikhao     | print    |
+| agar       | if       |
+| warna      | else     |
+| warna_agar | elif     |
+| jabtak     | while    |
+| har        | for      |
+| mai        | in       |
+| kaam       | def      |
+| wapas      | return   |
+| aao        | import   |
+| jaise      | as       |
+| pakdo      | try      |
+| chodo      | except   |
+| sahi       | True     |
+| galat      | False    |
+| kuch_nahi  | None     |
+| cheez      | class    |
+| khud       | self     |
+| aur        | and      |
+| ya         | or       |
+| nahi       | not      |
+| chalne_de  | pass     |
+| rok        | break    |
+| aage       | continue |
 
-```
-#mode hinglish
+---
 
-aao numpy jaise np
-
-numbers = [1, 2, 3, 4, 5]
-bolo np.mean(numbers)
-bolo np.sum(numbers)
-```
-
-Output:
-```
-3.0
-15
-```
 ## Functions
 
-```
+```vex
 #mode hinglish
 
 kaam greet(naam):
-    wapas "Assalamualiykum Habibi" + naam
+    wapas "Assalamualiykum Habibi " + naam
 
 bolo greet("Sohail")
 ```
 
 Output:
-```
+
+```text
 Assalamualiykum Habibi Sohail
 ```
+
+---
+
 ## Loops
 
-```
+```vex
 #mode hinglish
 
 har i mai range(5):
     bolo i
 ```
+
 Output:
-```
+
+```text
 0
 1
 2
 3
 4
+```
+
+---
 
 ## Error Handling
 
-```
+```vex
 #mode hinglish
 
 pakdo:
     bolo 10 / 0
+
 chodo ZeroDivisionError:
     bolo "Zero se divide nahi kar sakte!"
 ```
-## VSCode / Windsurf Extension
 
-1. Search **"Vex Language"** in extensions
-2. Install
-3. Create a `.vex` file
-4. Click **▶** or press `Ctrl+Shift+R` to run
+---
 
-Syntax highlighting, file icons, and run support included.
+## NumPy Example
+
+```vex
+#mode hinglish
+
+aao numpy jaise np
+
+numbers = [1, 2, 3, 4, 5]
+
+bolo np.mean(numbers)
+bolo np.sum(numbers)
+```
+
+Output:
+
+```text
+3.0
+15
+```
+
+---
+
+## Language Internals
+
+### Token Inspection
+
+```bash
+vex tokens hello.vex
+```
+
+Example:
+
+```text
+KEYWORD('agar')
+IDENTIFIER('age')
+OPERATOR('>=')
+NUMBER('18')
+COLON(':')
+EOF('')
+```
+
+---
+
+### AST Inspection
+
+```bash
+vex ast hello.vex
+```
+
+Input:
+
+```vex
+#mode hinglish
+
+age = 18
+
+agar age >= 18:
+    dikhao("Adult")
+```
+
+Output:
+
+```text
+Program
+  AssignmentStatement
+    Identifier(age)
+    NumberLiteral(18)
+
+  IfStatement
+    BinaryExpression(>=)
+      Identifier(age)
+      NumberLiteral(18)
+
+    Body
+      PrintStatement
+        StringLiteral('Adult')
+```
+
+---
+
+### Python Translation
+
+```bash
+vex translate hello.vex
+```
+
+Output:
+
+```python
+age = 18
+
+if age >= 18:
+    print("Adult")
+```
+
+---
+
+### Execution
+
+```bash
+vex run hello.vex
+```
+
+Output:
+
+```text
+Adult
+```
+
+---
+
+## CLI Commands
+
+| Command                  | Description               |
+| ------------------------ | ------------------------- |
+| vex run [file.vex]       | Execute a Vex file        |
+| vex translate <file.vex> | Generate Python source    |
+| vex tokens <file.vex>    | Display lexer tokens      |
+| vex ast <file.vex>       | Display generated AST     |
+| vex init <project_name>  | Create a new project      |
+| vex version              | Display installed version |
+
+---
+
+## VS Code & Windsurf Extension
+
+Features:
+
+* Syntax Highlighting
+* File Icons
+* Run Button
+* Vex File Recognition
+* Hinglish Keyword Support
+
+Installation:
+
+1. Open Extensions
+2. Search for **Vex Language**
+3. Install
+4. Create a `.vex` file
+5. Start coding
+
+---
+
+## Ecosystem
+
+Vex consists of more than the language itself.
+
+* Vex Language
+* PyPI Package
+* VS Code Extension
+* Windsurf Support
+* Lexer
+* Parser
+* AST Generator
+* CLI Tooling
+* Documentation
+* Testing Infrastructure
+
+---
 
 ## Project Structure
 
-```
+```text
 vex/
-├── cli.py           # CLI: vex run | translate | init | version
-├── config.py        # vex.toml project configuration
-├── translator.py    # Vex → Python transpilation
-├── modes.py         # Hinglish/English mode + keywords
-├── errors.py        # Error types and messages
-├── runtime.py       # Execute transpiled code
-├── transpiler.py    # Compatibility shim (legacy import path)
-├── runner.py        # Compatibility shim (legacy import path)
-└── keywords.py      # Compatibility shim (legacy import path)
+├── cli.py
+├── config.py
+├── translator.py
+├── lexer.py
+├── parser.py
+├── ast_nodes.py
+├── tokens.py
+├── modes.py
+├── errors.py
+├── runtime.py
+├── transpiler.py
+├── runner.py
+└── keywords.py
+
 tests/
-└── test_translator.py
+├── test_translator.py
+├── test_lexer.py
+├── test_parser.py
+├── test_ast.py
+├── test_config.py
+
 examples/
 └── hello.vex
 ```
 
-## CLI Commands
+---
 
-| Command | Description |
-|---------|-------------|
-| `vex run [file.vex]` | Run entry from `vex.toml`, or the given file |
-| `vex translate <file.vex>` | Transpile a Vex file and print Python to stdout |
-| `vex init <project_name>` | Create a new project with `main.vex` and `vex.toml` |
-| `vex version` | Print installed Vex version |
+## Testing
 
-## Development
+Run all tests:
 
 ```bash
-git clone https://github.com/sohailcodes-ai/Vex-Lang
-cd Vex-Lang
-pip install -e ".[dev]"
 python -m unittest discover -s tests
 ```
 
+Current test suite:
+
+```text
+23+ passing tests
+```
+
+---
+
+## Development Setup
+
+```bash
+git clone https://github.com/sohailcodes-ai/Vex-Lang
+
+cd Vex-Lang
+
+pip install -e ".[dev]"
+
+python -m unittest discover -s tests
+```
+
+---
+
 ## Links
 
-- PyPI: [pypi.org/project/vex-lang](https://pypi.org/project/vex-lang)
-- VSCode Marketplace: [Vex Language](https://marketplace.visualstudio.com/items?itemName=sohailcodes-ai.vex-lang)
-- GitHub: [github.com/sohailcodes-ai/Vex-Lang](https://github.com/sohailcodes-ai/Vex-Lang)
+GitHub:
+https://github.com/sohailcodes-ai/Vex-Lang
 
-## Built by
+PyPI:
+https://pypi.org/project/vex-lang
 
-Sohail Ali — [@sohailcodes-ai](https://github.com/sohailcodes-ai)
+VS Code Marketplace:
+https://marketplace.visualstudio.com/items?itemName=sohailcodes-ai.vex-lang
+
+---
+
+## Built By
+
+**Sohail Ali**
+
+GitHub:
+https://github.com/sohailcodes-ai
+
+---
+
+### Vision
+
+Vex aims to make programming more accessible while exposing learners to real language-engineering concepts such as lexical analysis, parsing, AST generation, transpilation, testing, tooling, and ecosystem development.
