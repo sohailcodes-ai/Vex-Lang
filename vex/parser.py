@@ -6,6 +6,7 @@ from vex.ast_nodes import (
     StringLiteral,
     BinaryExpression,
     PrintStatement,
+    IfStatement,
 )
 
 
@@ -43,47 +44,83 @@ class Parser:
         token = self.current()
 
         if not self.match(token_type, value):
+            expected = token_type.value
+            if value is not None:
+                expected += f"({value})"
+
             raise ParserError(
-                f"Expected {token_type} but got {token.type}"
+                f"Expected {expected} but got {token.type.value}({token.value!r}) "
+                f"at line {token.line}, column {token.column}"
             )
 
         return self.advance()
 
+    def skip_newlines(self):
+        while self.match(TokenType.NEWLINE):
+            self.advance()
+
     def parse(self):
         body = []
 
-        while not self.match(TokenType.EOF):
-            if self.match(TokenType.NEWLINE):
-                self.advance()
-                continue
+        self.skip_newlines()
 
+        while not self.match(TokenType.EOF):
             body.append(self.statement())
+            self.skip_newlines()
 
         return Program(body)
 
     def statement(self):
         token = self.current()
 
-        if token.type == TokenType.KEYWORD and token.value in (
-            "dikhao",
-            "bolo",
-        ):
+        if token.type == TokenType.KEYWORD and token.value in ("dikhao", "bolo"):
             return self.print_statement()
 
+        if token.type == TokenType.KEYWORD and token.value == "agar":
+            return self.if_statement()
+
         raise ParserError(
-            f"Unexpected token: {token.value}"
+            f"Unexpected token {token.type.value}({token.value!r}) "
+            f"at line {token.line}, column {token.column}"
         )
 
     def print_statement(self):
         self.advance()
 
         self.consume(TokenType.LEFT_PAREN)
-
         value = self.expression()
-
         self.consume(TokenType.RIGHT_PAREN)
 
         return PrintStatement(value)
+
+    def if_statement(self):
+        self.consume(TokenType.KEYWORD, "agar")
+
+        left = self.expression()
+        operator = self.consume(TokenType.OPERATOR)
+        right = self.expression()
+
+        condition = BinaryExpression(
+            left=left,
+            operator=operator.value,
+            right=right,
+        )
+
+        self.consume(TokenType.COLON)
+        self.skip_newlines()
+
+        body = []
+
+        if self.match(TokenType.KEYWORD, "dikhao") or self.match(TokenType.KEYWORD, "bolo"):
+            body.append(self.print_statement())
+        else:
+            token = self.current()
+            raise ParserError(
+                f"Expected statement inside if body but got {token.type.value}({token.value!r}) "
+                f"at line {token.line}, column {token.column}"
+            )
+
+        return IfStatement(condition=condition, body=body)
 
     def expression(self):
         token = self.current()
@@ -101,7 +138,8 @@ class Parser:
             return Identifier(token.value)
 
         raise ParserError(
-            f"Invalid expression: {token.value}"
+            f"Invalid expression {token.type.value}({token.value!r}) "
+            f"at line {token.line}, column {token.column}"
         )
 
 
