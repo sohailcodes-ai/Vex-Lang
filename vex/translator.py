@@ -19,6 +19,42 @@ def fix_strings(line: str) -> str:
     return line
 
 
+def replace_hinglish_keywords(line: str) -> str:
+    """
+    Replaces Hinglish keywords even when attached to symbols.
+
+    Example:
+    dikhao("Adult") -> print("Adult")
+    agar age >= 18: -> if age >= 18:
+    """
+    for vex_keyword, python_keyword in HINGLISH_TO_PYTHON.items():
+        line = re.sub(
+            rf"\b{re.escape(vex_keyword)}\b",
+            python_keyword,
+            line,
+        )
+    return line
+
+
+def normalize_print_syntax(line: str) -> str:
+    """
+    Supports:
+    print "Hello"  -> print("Hello")
+    print 'Hello'  -> print('Hello')
+    """
+    line = re.sub(
+        r'\bprint\s+"([^"]*)"',
+        r'print("\1")',
+        line,
+    )
+    line = re.sub(
+        r"\bprint\s+'([^']*)'",
+        r"print('\1')",
+        line,
+    )
+    return line
+
+
 def transpile(source: str) -> str:
     """Takes Vex source and returns equivalent Python source."""
     lines = source.splitlines()
@@ -32,25 +68,9 @@ def transpile(source: str) -> str:
         line = fix_strings(line)
 
         if mode == "hinglish":
-            words = line.split(" ")
-            new_words = []
-            for word in words:
-                stripped = word.strip()
-                if stripped in HINGLISH_TO_PYTHON:
-                    word = word.replace(stripped, HINGLISH_TO_PYTHON[stripped])
-                new_words.append(word)
-            line = " ".join(new_words)
+            line = replace_hinglish_keywords(line)
 
-        line = re.sub(
-            r'\bprint\s+"([^"]*)"',
-            r'print("\1")',
-            line,
-        )
-        line = re.sub(
-            r"\bprint\s+'([^']*)'",
-            r"print('\1')",
-            line,
-        )
+        line = normalize_print_syntax(line)
 
         output.append(line)
 

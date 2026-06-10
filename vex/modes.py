@@ -6,6 +6,7 @@ Mode detection and keyword mappings for Hinglish/English Vex source.
 
 HINGLISH_TO_PYTHON = {
     "bolo": "print",
+    "dikhao": "print",
     "agar": "if",
     "warna": "else",
     "warna_agar": "elif",
@@ -27,7 +28,7 @@ HINGLISH_TO_PYTHON = {
     "ya": "or",
     "nahi": "not",
     "seedha": "lambda",
-    "hai": "is",
+    #"hai": "is",
     "chalne_de": "pass",
     "rok": "break",
     "aage": "continue",

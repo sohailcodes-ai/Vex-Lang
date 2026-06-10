@@ -1,0 +1,6 @@
+#mode hinglish
+
+age = 18
+
+agar age >= 18:
+    dikhao("Adult")
