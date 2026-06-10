@@ -25,6 +25,27 @@ pip install vex-lang
 
 Python must be installed first.
 
+## Quick Start
+
+Scaffold a new project:
+
+```bash
+vex init my_app
+```
+
+This creates:
+
+```
+my_app/
+└── main.vex
+```
+
+Run it:
+
+```bash
+vex run my_app/main.vex
+```
+
 ## Your First File
 
 Create a file called `hello.vex` and write:
@@ -44,6 +65,13 @@ Run it:
 ```bash
 vex run hello.vex
 ```
+
+To see the generated Python without running it:
+
+```bash
+vex translate examples/hello.vex
+```
+
 Output:
 ```
 Yo Sohail!
@@ -151,6 +179,42 @@ chodo ZeroDivisionError:
 4. Click **▶** or press `Ctrl+Shift+R` to run
 
 Syntax highlighting, file icons, and run support included.
+
+## Project Structure
+
+```
+vex/
+├── cli.py           # CLI: vex run | translate | init | version
+├── translator.py    # Vex → Python transpilation
+├── modes.py         # Hinglish/English mode + keywords
+├── errors.py        # Error types and messages
+├── runtime.py       # Execute transpiled code
+├── transpiler.py    # Compatibility shim (legacy import path)
+├── runner.py        # Compatibility shim (legacy import path)
+└── keywords.py      # Compatibility shim (legacy import path)
+tests/
+└── test_translator.py
+examples/
+└── hello.vex
+```
+
+## CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `vex run <file.vex>` | Transpile and run a Vex file |
+| `vex translate <file.vex>` | Transpile a Vex file and print Python to stdout |
+| `vex init <project_name>` | Create a new project with `main.vex` |
+| `vex version` | Print installed Vex version |
+
+## Development
+
+```bash
+git clone https://github.com/sohailcodes-ai/Vex-Lang
+cd Vex-Lang
+pip install -e ".[dev]"
+python -m unittest discover -s tests
+```
 
 ## Links
 
