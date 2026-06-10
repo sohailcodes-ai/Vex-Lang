@@ -17,6 +17,10 @@ class VexProjectExistsError(VexError):
     """Raised when vex init targets an existing directory."""
 
 
+class VexConfigError(VexError):
+    """Raised when vex.toml is missing or invalid."""
+
+
 def format_file_not_found(filepath: str) -> str:
     return f"[Vex Error] File nahi mila: {filepath}"
 
@@ -31,3 +35,11 @@ def format_runtime_error(error: Exception) -> str:
 
 def format_unknown_command(command: str) -> str:
     return f"[Vex] Unknown command: {command}"
+
+
+def format_config_not_found() -> str:
+    return "[Vex] Error: vex.toml nahi mila. Usage: vex run <file.vex>"
+
+
+def format_config_error(message: str) -> str:
+    return f"[Vex Error] {message}"

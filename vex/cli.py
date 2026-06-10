@@ -4,7 +4,7 @@ cli.py
 Vex CLI — registers the 'vex' command globally after pip install.
 
 Usage:
-    vex run <file.vex>
+    vex run [file.vex]
     vex translate <file.vex>
     vex init <project_name>
     vex version
@@ -15,7 +15,15 @@ from pathlib import Path
 from typing import Optional
 
 from vex import __version__
+from vex.config import (
+    CONFIG_FILENAME,
+    format_config,
+    resolve_entry_file,
+)
 from vex.errors import (
+    VexConfigError,
+    format_config_error,
+    format_config_not_found,
     format_file_not_found,
     format_unknown_command,
 )
@@ -31,7 +39,7 @@ bolo "Hello from {project_name}!"
 def _print_usage() -> None:
     print(f"Vex Language v{__version__}")
     print("Usage:")
-    print("  vex run <file.vex>")
+    print("  vex run [file.vex]")
     print("  vex translate <file.vex>")
     print("  vex init <project_name>")
     print("  vex version")
@@ -46,8 +54,24 @@ def _read_vex_file(filepath: str) -> Optional[str]:
         return None
 
 
-def cmd_run(filepath: str) -> None:
-    source = _read_vex_file(filepath)
+def _resolve_run_filepath(filepath: Optional[str]) -> Optional[str]:
+    if filepath:
+        return filepath
+
+    entry_file = resolve_entry_file()
+    if entry_file is None:
+        print(format_config_not_found())
+        return None
+
+    return str(entry_file)
+
+
+def cmd_run(filepath: Optional[str] = None) -> None:
+    resolved = _resolve_run_filepath(filepath)
+    if resolved is None:
+        return
+
+    source = _read_vex_file(resolved)
     if source is None:
         return
 
@@ -76,9 +100,17 @@ def cmd_init(project_name: str) -> None:
         PROJECT_TEMPLATE.format(project_name=project_name),
         encoding="utf-8",
     )
+    config_file = project_dir / CONFIG_FILENAME
+    config_file.write_text(
+        format_config(name=project_name),
+        encoding="utf-8",
+    )
     print(f"[Vex] Project ban gaya: {project_name}/")
     print("  - main.vex")
-    print(f"\nRun karo: vex run {project_name}/main.vex")
+    print(f"  - {CONFIG_FILENAME}")
+    print(f"\nRun karo:")
+    print(f"  cd {project_name}")
+    print("  vex run")
 
 
 def main() -> None:
@@ -93,11 +125,11 @@ def main() -> None:
         return
 
     if command == "run":
-        if len(sys.argv) < 3:
-            print("[Vex] Error: file path do")
-            print("Usage: vex run <file.vex>")
-            return
-        cmd_run(sys.argv[2])
+        filepath = sys.argv[2] if len(sys.argv) >= 3 else None
+        try:
+            cmd_run(filepath)
+        except VexConfigError as error:
+            print(format_config_error(str(error)))
         return
 
     if command == "translate":

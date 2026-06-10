@@ -37,13 +37,31 @@ This creates:
 
 ```
 my_app/
-└── main.vex
+├── main.vex
+└── vex.toml
 ```
 
-Run it:
+`vex.toml` holds project settings:
+
+```toml
+name = "my_app"
+version = "0.1.0"
+mode = "hinglish"
+entry = "main.vex"
+```
+
+Run it from the project folder:
+
+```bash
+cd my_app
+vex run
+```
+
+Or pass a file directly:
 
 ```bash
 vex run my_app/main.vex
+vex run examples/hello.vex
 ```
 
 ## Your First File
@@ -185,6 +203,7 @@ Syntax highlighting, file icons, and run support included.
 ```
 vex/
 ├── cli.py           # CLI: vex run | translate | init | version
+├── config.py        # vex.toml project configuration
 ├── translator.py    # Vex → Python transpilation
 ├── modes.py         # Hinglish/English mode + keywords
 ├── errors.py        # Error types and messages
@@ -202,9 +221,9 @@ examples/
 
 | Command | Description |
 |---------|-------------|
-| `vex run <file.vex>` | Transpile and run a Vex file |
+| `vex run [file.vex]` | Run entry from `vex.toml`, or the given file |
 | `vex translate <file.vex>` | Transpile a Vex file and print Python to stdout |
-| `vex init <project_name>` | Create a new project with `main.vex` |
+| `vex init <project_name>` | Create a new project with `main.vex` and `vex.toml` |
 | `vex version` | Print installed Vex version |
 
 ## Development
