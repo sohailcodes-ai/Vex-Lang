@@ -13,8 +13,12 @@ class VexCompiler:
     def __init__(self) -> None:
         self.instructions: list[Instruction] = []
 
-    def emit(self, op: str, arg: Any = None) -> None:
+    def emit(self, op: str, arg: Any = None) -> int:
         self.instructions.append(Instruction(op, arg))
+        return len(self.instructions) - 1
+
+    def patch(self, index: int, arg: Any) -> None:
+        self.instructions[index].arg = arg
 
     def compile(self, ast: Any) -> list[Instruction]:
         self.instructions = []
@@ -37,9 +41,27 @@ class VexCompiler:
             self.emit(OpCode.PRINT)
 
         elif name == "IfStatement":
-            raise VexCompilerError(
-                "IfStatement VM support not implemented yet. Coming next."
-            )
+            self.compile_node(node.condition)
+
+            jump_if_false_index = self.emit(OpCode.JUMP_IF_FALSE, None)
+
+            for statement in node.body:
+                self.compile_node(statement)
+
+            if node.else_body:
+                jump_over_else_index = self.emit(OpCode.JUMP, None)
+
+                else_start = len(self.instructions)
+                self.patch(jump_if_false_index, else_start)
+
+                for statement in node.else_body:
+                    self.compile_node(statement)
+
+                after_else = len(self.instructions)
+                self.patch(jump_over_else_index, after_else)
+            else:
+                after_if = len(self.instructions)
+                self.patch(jump_if_false_index, after_if)
 
         elif name == "NumberLiteral":
             value = node.value
@@ -73,6 +95,18 @@ class VexCompiler:
                 self.emit(OpCode.BINARY_MUL)
             elif node.operator == "/":
                 self.emit(OpCode.BINARY_DIV)
+            elif node.operator == "==":
+                self.emit(OpCode.COMPARE_EQ)
+            elif node.operator == "!=":
+                self.emit(OpCode.COMPARE_NE)
+            elif node.operator == "<":
+                self.emit(OpCode.COMPARE_LT)
+            elif node.operator == "<=":
+                self.emit(OpCode.COMPARE_LTE)
+            elif node.operator == ">":
+                self.emit(OpCode.COMPARE_GT)
+            elif node.operator == ">=":
+                self.emit(OpCode.COMPARE_GTE)
             else:
                 raise VexCompilerError(
                     f"Unsupported binary operator for VM: {node.operator}"

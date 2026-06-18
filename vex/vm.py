@@ -72,6 +72,46 @@ class VexVM:
                 left = self.pop()
                 self.push(left / right)
 
+            elif op == OpCode.COMPARE_EQ:
+                right = self.pop()
+                left = self.pop()
+                self.push(left == right)
+
+            elif op == OpCode.COMPARE_NE:
+                right = self.pop()
+                left = self.pop()
+                self.push(left != right)
+
+            elif op == OpCode.COMPARE_LT:
+                right = self.pop()
+                left = self.pop()
+                self.push(left < right)
+
+            elif op == OpCode.COMPARE_LTE:
+                right = self.pop()
+                left = self.pop()
+                self.push(left <= right)
+
+            elif op == OpCode.COMPARE_GT:
+                right = self.pop()
+                left = self.pop()
+                self.push(left > right)
+
+            elif op == OpCode.COMPARE_GTE:
+                right = self.pop()
+                left = self.pop()
+                self.push(left >= right)
+
+            elif op == OpCode.JUMP:
+                ip = arg
+                continue
+
+            elif op == OpCode.JUMP_IF_FALSE:
+                condition = self.pop()
+                if not condition:
+                    ip = arg
+                    continue
+
             elif op == OpCode.RETURN_VALUE:
                 return self.pop()
 
