@@ -41,3 +41,7 @@ ast_demo.vex
 # Temporary files
 *.tmp
 *.temp
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
