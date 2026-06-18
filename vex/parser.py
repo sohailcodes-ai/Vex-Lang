@@ -137,6 +137,37 @@ class Parser:
         return IfStatement(condition=condition, body=body)
 
     def expression(self):
+        return self.additive()
+
+    def additive(self):
+        node = self.multiplicative()
+
+        while self.match(TokenType.OPERATOR, "+") or self.match(TokenType.OPERATOR, "-"):
+            operator = self.advance()
+            right = self.multiplicative()
+            node = BinaryExpression(
+                left=node,
+                operator=operator.value,
+                right=right,
+            )
+
+        return node
+
+    def multiplicative(self):
+        node = self.primary()
+
+        while self.match(TokenType.OPERATOR, "*") or self.match(TokenType.OPERATOR, "/"):
+            operator = self.advance()
+            right = self.primary()
+            node = BinaryExpression(
+                left=node,
+                operator=operator.value,
+                right=right,
+            )
+
+        return node
+
+    def primary(self):
         token = self.current()
 
         if token.type == TokenType.STRING:
@@ -150,6 +181,12 @@ class Parser:
         if token.type == TokenType.IDENTIFIER:
             self.advance()
             return Identifier(token.value)
+
+        if token.type == TokenType.LEFT_PAREN:
+            self.advance()
+            expr = self.expression()
+            self.consume(TokenType.RIGHT_PAREN)
+            return expr
 
         raise ParserError(
             f"Invalid expression {token.type.value}({token.value!r}) "

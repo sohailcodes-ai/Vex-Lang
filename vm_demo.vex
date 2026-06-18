@@ -3,5 +3,11 @@
 naam = "Sohail"
 bolo(naam)
 
-x = 15
+x = 10 + 5
 bolo(x)
+
+y = 10 + 5 * 2
+bolo(y)
+
+z = (10 + 5) * 2
+bolo(z)
