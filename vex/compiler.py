@@ -25,22 +25,38 @@ class VexCompiler:
         name = node.__class__.__name__
 
         if name == "Program":
-            for statement in node.statements:
+            for statement in node.body:
                 self.compile_node(statement)
 
         elif name == "AssignmentStatement":
             self.compile_node(node.value)
-            self.emit(OpCode.STORE_NAME, node.name)
+            self.emit(OpCode.STORE_NAME, node.target.name)
 
         elif name == "PrintStatement":
             self.compile_node(node.value)
             self.emit(OpCode.PRINT)
 
+        elif name == "IfStatement":
+            raise VexCompilerError(
+                "IfStatement VM support not implemented yet. Coming next."
+            )
+
         elif name == "NumberLiteral":
-            self.emit(OpCode.LOAD_CONST, node.value)
+            value = node.value
+            if isinstance(value, str) and "." in value:
+                value = float(value)
+            elif isinstance(value, str):
+                value = int(value)
+            self.emit(OpCode.LOAD_CONST, value)
 
         elif name == "StringLiteral":
             self.emit(OpCode.LOAD_CONST, node.value)
+
+        elif name == "BooleanLiteral":
+            self.emit(OpCode.LOAD_CONST, node.value)
+
+        elif name == "NullLiteral":
+            self.emit(OpCode.LOAD_CONST, None)
 
         elif name == "Identifier":
             self.emit(OpCode.LOAD_NAME, node.name)
@@ -58,10 +74,12 @@ class VexCompiler:
             elif node.operator == "/":
                 self.emit(OpCode.BINARY_DIV)
             else:
-                raise VexCompilerError(f"Unsupported binary operator: {node.operator}")
+                raise VexCompilerError(
+                    f"Unsupported binary operator for VM: {node.operator}"
+                )
 
         else:
-            raise VexCompilerError(f"Unsupported AST node: {name}")
+            raise VexCompilerError(f"Unsupported AST node for VM: {name}")
 
 
 def compile_to_bytecode(ast: Any) -> list[Instruction]:

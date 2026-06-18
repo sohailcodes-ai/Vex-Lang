@@ -1,0 +1,7 @@
+#mode hinglish
+
+naam = "Sohail"
+bolo(naam)
+
+x = 15
+bolo(x)
