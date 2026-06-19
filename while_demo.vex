@@ -1,0 +1,6 @@
+#mode hinglish
+
+x = 0
+
+jabtak x < 3:
+    x = x + 1

@@ -89,6 +89,21 @@ class VexCompiler:
                 after_if = len(self.instructions)
                 self.patch(jump_if_false_index, after_if)
 
+        elif name == "WhileStatement":
+            loop_start = len(self.instructions)
+
+            self.compile_node(node.condition)
+
+            jump_if_false_index = self.emit(OpCode.JUMP_IF_FALSE, None)
+
+            for statement in node.body:
+                self.compile_node(statement)
+
+            self.emit(OpCode.JUMP, loop_start)
+
+            loop_end = len(self.instructions)
+            self.patch(jump_if_false_index, loop_end)
+
         elif name == "CallExpression":
             for argument in node.arguments:
                 self.compile_node(argument)

@@ -147,6 +147,22 @@ class FunctionDefinition(ASTNode):
 
 
 @dataclass
+class WhileStatement(ASTNode):
+    condition: ASTNode
+    body: List[ASTNode] = field(default_factory=list)
+
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        lines = [f"{spaces}WhileStatement", self.condition.pretty(indent + 2)]
+
+        lines.append(f"{spaces}  Body")
+        for node in self.body:
+            lines.append(node.pretty(indent + 4))
+
+        return "\n".join(lines)
+
+
+@dataclass
 class IfStatement(ASTNode):
     condition: ASTNode
     body: List[ASTNode] = field(default_factory=list)

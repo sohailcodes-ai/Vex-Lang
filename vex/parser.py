@@ -8,6 +8,7 @@ from vex.ast_nodes import (
     CallExpression,
     PrintStatement,
     IfStatement,
+    WhileStatement,
     AssignmentStatement,
     FunctionDefinition,
     ReturnStatement,
@@ -71,7 +72,6 @@ class Parser:
 
     def parse(self):
         body = []
-
         self.skip_newlines()
 
         while not self.match(TokenType.EOF):
@@ -89,6 +89,9 @@ class Parser:
         if token.type == TokenType.KEYWORD and token.value == "agar":
             return self.if_statement()
 
+        if token.type == TokenType.KEYWORD and token.value == "jabtak":
+            return self.while_statement()
+
         if token.type == TokenType.KEYWORD and token.value == "kaam":
             return self.function_definition()
 
@@ -105,11 +108,9 @@ class Parser:
 
     def print_statement(self):
         self.advance()
-
         self.consume(TokenType.LEFT_PAREN)
         value = self.expression()
         self.consume(TokenType.RIGHT_PAREN)
-
         return PrintStatement(value)
 
     def assignment_statement(self):
@@ -145,18 +146,7 @@ class Parser:
         self.consume(TokenType.COLON)
         self.skip_newlines()
 
-        body = []
-
-        if self.match(TokenType.KEYWORD, "wapas"):
-            body.append(self.return_statement())
-        elif self.match(TokenType.KEYWORD, "dikhao") or self.match(TokenType.KEYWORD, "bolo"):
-            body.append(self.print_statement())
-        else:
-            token = self.current()
-            raise ParserError(
-                f"Expected statement inside function body but got {token.type.value}({token.value!r}) "
-                f"at line {token.line}, column {token.column}"
-            )
+        body = [self.statement()]
 
         return FunctionDefinition(
             name=Identifier(name_token.value),
@@ -185,17 +175,7 @@ class Parser:
         self.consume(TokenType.COLON)
         self.skip_newlines()
 
-        body = []
-
-        if self.match(TokenType.KEYWORD, "dikhao") or self.match(TokenType.KEYWORD, "bolo"):
-            body.append(self.print_statement())
-        else:
-            token = self.current()
-            raise ParserError(
-                f"Expected statement inside if body but got {token.type.value}({token.value!r}) "
-                f"at line {token.line}, column {token.column}"
-            )
-
+        body = [self.statement()]
         self.skip_newlines()
 
         else_body = None
@@ -204,22 +184,35 @@ class Parser:
             self.consume(TokenType.KEYWORD, "warna")
             self.consume(TokenType.COLON)
             self.skip_newlines()
-
-            else_body = []
-
-            if self.match(TokenType.KEYWORD, "dikhao") or self.match(TokenType.KEYWORD, "bolo"):
-                else_body.append(self.print_statement())
-            else:
-                token = self.current()
-                raise ParserError(
-                    f"Expected statement inside else body but got {token.type.value}({token.value!r}) "
-                    f"at line {token.line}, column {token.column}"
-                )
+            else_body = [self.statement()]
 
         return IfStatement(
             condition=condition,
             body=body,
             else_body=else_body,
+        )
+
+    def while_statement(self):
+        self.consume(TokenType.KEYWORD, "jabtak")
+
+        left = self.expression()
+        operator = self.consume(TokenType.OPERATOR)
+        right = self.expression()
+
+        condition = BinaryExpression(
+            left=left,
+            operator=operator.value,
+            right=right,
+        )
+
+        self.consume(TokenType.COLON)
+        self.skip_newlines()
+
+        body = [self.statement()]
+
+        return WhileStatement(
+            condition=condition,
+            body=body,
         )
 
     def expression(self):
