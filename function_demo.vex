@@ -1,0 +1,6 @@
+#mode hinglish
+
+kaam greet(name):
+    wapas "Hello " + name
+
+bolo(greet("Sohail"))

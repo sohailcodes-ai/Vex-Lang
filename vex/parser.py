@@ -5,9 +5,12 @@ from vex.ast_nodes import (
     NumberLiteral,
     StringLiteral,
     BinaryExpression,
+    CallExpression,
     PrintStatement,
     IfStatement,
     AssignmentStatement,
+    FunctionDefinition,
+    ReturnStatement,
 )
 
 
@@ -24,6 +27,12 @@ class Parser:
         if self.position >= len(self.tokens):
             return self.tokens[-1]
         return self.tokens[self.position]
+
+    def peek(self):
+        next_position = self.position + 1
+        if next_position >= len(self.tokens):
+            return self.tokens[-1]
+        return self.tokens[next_position]
 
     def advance(self):
         token = self.current()
@@ -80,6 +89,12 @@ class Parser:
         if token.type == TokenType.KEYWORD and token.value == "agar":
             return self.if_statement()
 
+        if token.type == TokenType.KEYWORD and token.value == "kaam":
+            return self.function_definition()
+
+        if token.type == TokenType.KEYWORD and token.value == "wapas":
+            return self.return_statement()
+
         if token.type == TokenType.IDENTIFIER:
             return self.assignment_statement()
 
@@ -106,6 +121,53 @@ class Parser:
             target=Identifier(target_token.value),
             value=value,
         )
+
+    def function_definition(self):
+        self.consume(TokenType.KEYWORD, "kaam")
+
+        name_token = self.consume(TokenType.IDENTIFIER)
+        self.consume(TokenType.LEFT_PAREN)
+
+        params = []
+
+        if not self.match(TokenType.RIGHT_PAREN):
+            while True:
+                param_token = self.consume(TokenType.IDENTIFIER)
+                params.append(Identifier(param_token.value))
+
+                if self.match(TokenType.COMMA):
+                    self.advance()
+                    continue
+
+                break
+
+        self.consume(TokenType.RIGHT_PAREN)
+        self.consume(TokenType.COLON)
+        self.skip_newlines()
+
+        body = []
+
+        if self.match(TokenType.KEYWORD, "wapas"):
+            body.append(self.return_statement())
+        elif self.match(TokenType.KEYWORD, "dikhao") or self.match(TokenType.KEYWORD, "bolo"):
+            body.append(self.print_statement())
+        else:
+            token = self.current()
+            raise ParserError(
+                f"Expected statement inside function body but got {token.type.value}({token.value!r}) "
+                f"at line {token.line}, column {token.column}"
+            )
+
+        return FunctionDefinition(
+            name=Identifier(name_token.value),
+            params=params,
+            body=body,
+        )
+
+    def return_statement(self):
+        self.consume(TokenType.KEYWORD, "wapas")
+        value = self.expression()
+        return ReturnStatement(value)
 
     def if_statement(self):
         self.consume(TokenType.KEYWORD, "agar")
@@ -203,8 +265,32 @@ class Parser:
             return NumberLiteral(token.value)
 
         if token.type == TokenType.IDENTIFIER:
+            identifier = Identifier(token.value)
             self.advance()
-            return Identifier(token.value)
+
+            if self.match(TokenType.LEFT_PAREN):
+                self.advance()
+
+                arguments = []
+
+                if not self.match(TokenType.RIGHT_PAREN):
+                    while True:
+                        arguments.append(self.expression())
+
+                        if self.match(TokenType.COMMA):
+                            self.advance()
+                            continue
+
+                        break
+
+                self.consume(TokenType.RIGHT_PAREN)
+
+                return CallExpression(
+                    callee=identifier,
+                    arguments=arguments,
+                )
+
+            return identifier
 
         if token.type == TokenType.LEFT_PAREN:
             self.advance()
