@@ -26,8 +26,7 @@ class Identifier(ASTNode):
     name: str
 
     def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return f"{spaces}Identifier({self.name})"
+        return f"{' ' * indent}Identifier({self.name})"
 
 
 @dataclass
@@ -35,8 +34,7 @@ class NumberLiteral(ASTNode):
     value: str
 
     def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return f"{spaces}NumberLiteral({self.value})"
+        return f"{' ' * indent}NumberLiteral({self.value})"
 
 
 @dataclass
@@ -44,8 +42,7 @@ class StringLiteral(ASTNode):
     value: str
 
     def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return f"{spaces}StringLiteral({self.value!r})"
+        return f"{' ' * indent}StringLiteral({self.value!r})"
 
 
 @dataclass
@@ -53,15 +50,13 @@ class BooleanLiteral(ASTNode):
     value: bool
 
     def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return f"{spaces}BooleanLiteral({self.value})"
+        return f"{' ' * indent}BooleanLiteral({self.value})"
 
 
 @dataclass
 class NullLiteral(ASTNode):
     def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return f"{spaces}NullLiteral(None)"
+        return f"{' ' * indent}NullLiteral(None)"
 
 
 @dataclass
@@ -71,14 +66,26 @@ class BinaryExpression(ASTNode):
     right: ASTNode
 
     def pretty(self, indent: int = 0) -> str:
+        return "\n".join([
+            f"{' ' * indent}BinaryExpression({self.operator})",
+            self.left.pretty(indent + 2),
+            self.right.pretty(indent + 2),
+        ])
+
+
+@dataclass
+class CallExpression(ASTNode):
+    callee: Identifier
+    arguments: List[ASTNode] = field(default_factory=list)
+
+    def pretty(self, indent: int = 0) -> str:
         spaces = " " * indent
-        return "\n".join(
-            [
-                f"{spaces}BinaryExpression({self.operator})",
-                self.left.pretty(indent + 2),
-                self.right.pretty(indent + 2),
-            ]
-        )
+        lines = [f"{spaces}CallExpression", self.callee.pretty(indent + 2)]
+        if self.arguments:
+            lines.append(f"{spaces}  Arguments")
+            for arg in self.arguments:
+                lines.append(arg.pretty(indent + 4))
+        return "\n".join(lines)
 
 
 @dataclass
@@ -86,13 +93,10 @@ class PrintStatement(ASTNode):
     value: ASTNode
 
     def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return "\n".join(
-            [
-                f"{spaces}PrintStatement",
-                self.value.pretty(indent + 2),
-            ]
-        )
+        return "\n".join([
+            f"{' ' * indent}PrintStatement",
+            self.value.pretty(indent + 2),
+        ])
 
 
 @dataclass
@@ -101,14 +105,45 @@ class AssignmentStatement(ASTNode):
     value: ASTNode
 
     def pretty(self, indent: int = 0) -> str:
+        return "\n".join([
+            f"{' ' * indent}AssignmentStatement",
+            self.target.pretty(indent + 2),
+            self.value.pretty(indent + 2),
+        ])
+
+
+@dataclass
+class ReturnStatement(ASTNode):
+    value: Optional[ASTNode] = None
+
+    def pretty(self, indent: int = 0) -> str:
         spaces = " " * indent
-        return "\n".join(
-            [
-                f"{spaces}AssignmentStatement",
-                self.target.pretty(indent + 2),
-                self.value.pretty(indent + 2),
-            ]
-        )
+        lines = [f"{spaces}ReturnStatement"]
+        if self.value is not None:
+            lines.append(self.value.pretty(indent + 2))
+        return "\n".join(lines)
+
+
+@dataclass
+class FunctionDefinition(ASTNode):
+    name: Identifier
+    params: List[Identifier] = field(default_factory=list)
+    body: List[ASTNode] = field(default_factory=list)
+
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        lines = [f"{spaces}FunctionDefinition", self.name.pretty(indent + 2)]
+
+        if self.params:
+            lines.append(f"{spaces}  Params")
+            for param in self.params:
+                lines.append(param.pretty(indent + 4))
+
+        lines.append(f"{spaces}  Body")
+        for node in self.body:
+            lines.append(node.pretty(indent + 4))
+
+        return "\n".join(lines)
 
 
 @dataclass
