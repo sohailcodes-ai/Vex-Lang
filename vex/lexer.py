@@ -41,181 +41,165 @@ class LexerError(Exception):
 
 class Lexer:
     def __init__(self, source: str):
-        self.source = source
-        self.position = 0
-        self.line = 1
-        self.column = 1
+        self.lines = source.splitlines()
         self.tokens = []
+        self.indent_stack = [0]
 
-    def current_char(self):
-        if self.position >= len(self.source):
-            return None
-        return self.source[self.position]
-
-    def peek_char(self):
-        next_position = self.position + 1
-        if next_position >= len(self.source):
-            return None
-        return self.source[next_position]
-
-    def advance(self):
-        char = self.current_char()
-        self.position += 1
-
-        if char == "\n":
-            self.line += 1
-            self.column = 1
-        else:
-            self.column += 1
-
-        return char
-
-    def add_token(self, token_type, value, line=None, column=None):
-        self.tokens.append(
-            Token(
-                token_type,
-                value,
-                line if line is not None else self.line,
-                column if column is not None else self.column,
-            )
-        )
+    def add_token(self, token_type, value, line, column):
+        self.tokens.append(Token(token_type, value, line, column))
 
     def tokenize(self):
-        while self.current_char() is not None:
-            char = self.current_char()
-
-            if char in " \t\r":
-                self.advance()
+        for line_number, raw_line in enumerate(self.lines, start=1):
+            if not raw_line.strip():
                 continue
 
-            if char == "\n":
-                self.add_token(TokenType.NEWLINE, "\\n")
-                self.advance()
+            stripped = raw_line.lstrip(" ")
+            indent = len(raw_line) - len(stripped)
+
+            if stripped.startswith("#"):
+                continue
+
+            self.handle_indent(indent, line_number)
+
+            self.tokenize_line(stripped, line_number, indent + 1)
+            self.add_token(TokenType.NEWLINE, "\\n", line_number, len(raw_line) + 1)
+
+        while len(self.indent_stack) > 1:
+            self.indent_stack.pop()
+            self.add_token(TokenType.DEDENT, "", len(self.lines), 1)
+
+        self.add_token(TokenType.EOF, "", len(self.lines) + 1, 1)
+        return self.tokens
+
+    def handle_indent(self, indent, line_number):
+        current_indent = self.indent_stack[-1]
+
+        if indent > current_indent:
+            self.indent_stack.append(indent)
+            self.add_token(TokenType.INDENT, "", line_number, 1)
+            return
+
+        while indent < self.indent_stack[-1]:
+            self.indent_stack.pop()
+            self.add_token(TokenType.DEDENT, "", line_number, 1)
+
+        if indent != self.indent_stack[-1]:
+            raise LexerError(f"Invalid indentation at line {line_number}")
+
+    def tokenize_line(self, line, line_number, base_column):
+        position = 0
+
+        while position < len(line):
+            char = line[position]
+            column = base_column + position
+
+            if char in " \t\r":
+                position += 1
                 continue
 
             if char == "#":
-                self.skip_comment_or_directive()
-                continue
+                break
 
             if char.isalpha() or char == "_":
-                self.tokenize_identifier_or_keyword()
+                position = self.tokenize_identifier_or_keyword(line, position, line_number, column)
                 continue
 
             if char.isdigit():
-                self.tokenize_number()
+                position = self.tokenize_number(line, position, line_number, column)
                 continue
 
             if char in ('"', "'"):
-                self.tokenize_string()
+                position = self.tokenize_string(line, position, line_number, column)
                 continue
 
             if char == ":":
-                self.add_token(TokenType.COLON, char)
-                self.advance()
+                self.add_token(TokenType.COLON, char, line_number, column)
+                position += 1
                 continue
 
             if char == ",":
-                self.add_token(TokenType.COMMA, char)
-                self.advance()
+                self.add_token(TokenType.COMMA, char, line_number, column)
+                position += 1
                 continue
 
             if char == "(":
-                self.add_token(TokenType.LEFT_PAREN, char)
-                self.advance()
+                self.add_token(TokenType.LEFT_PAREN, char, line_number, column)
+                position += 1
                 continue
 
             if char == ")":
-                self.add_token(TokenType.RIGHT_PAREN, char)
-                self.advance()
+                self.add_token(TokenType.RIGHT_PAREN, char, line_number, column)
+                position += 1
                 continue
 
             if self.is_operator_start(char):
-                self.tokenize_operator()
+                position = self.tokenize_operator(line, position, line_number, column)
                 continue
 
             raise LexerError(
-                f"Unexpected character {char!r} at line {self.line}, column {self.column}"
+                f"Unexpected character {char!r} at line {line_number}, column {column}"
             )
 
-        self.add_token(TokenType.EOF, "")
-        return self.tokens
+    def tokenize_identifier_or_keyword(self, line, position, line_number, column):
+        start = position
 
-    def skip_comment_or_directive(self):
-        while self.current_char() is not None and self.current_char() != "\n":
-            self.advance()
-
-    def tokenize_identifier_or_keyword(self):
-        start_line = self.line
-        start_column = self.column
-        value = ""
-
-        while self.current_char() is not None and (
-            self.current_char().isalnum() or self.current_char() == "_"
+        while position < len(line) and (
+            line[position].isalnum() or line[position] == "_"
         ):
-            value += self.advance()
+            position += 1
 
+        value = line[start:position]
         token_type = TokenType.KEYWORD if value in KEYWORDS else TokenType.IDENTIFIER
-        self.add_token(token_type, value, start_line, start_column)
+        self.add_token(token_type, value, line_number, column)
+        return position
 
-    def tokenize_number(self):
-        start_line = self.line
-        start_column = self.column
+    def tokenize_number(self, line, position, line_number, column):
+        start = position
+
+        while position < len(line) and line[position].isdigit():
+            position += 1
+
+        if position < len(line) and line[position] == ".":
+            position += 1
+            while position < len(line) and line[position].isdigit():
+                position += 1
+
+        self.add_token(TokenType.NUMBER, line[start:position], line_number, column)
+        return position
+
+    def tokenize_string(self, line, position, line_number, column):
+        quote = line[position]
+        position += 1
         value = ""
 
-        while self.current_char() is not None and self.current_char().isdigit():
-            value += self.advance()
+        while position < len(line) and line[position] != quote:
+            value += line[position]
+            position += 1
 
-        if self.current_char() == ".":
-            value += self.advance()
-            while self.current_char() is not None and self.current_char().isdigit():
-                value += self.advance()
+        if position >= len(line) or line[position] != quote:
+            raise LexerError(f"Unterminated string at line {line_number}, column {column}")
 
-        self.add_token(TokenType.NUMBER, value, start_line, start_column)
-
-    def tokenize_string(self):
-        start_line = self.line
-        start_column = self.column
-        quote = self.advance()
-        value = ""
-
-        while self.current_char() is not None and self.current_char() != quote:
-            if self.current_char() == "\n":
-                raise LexerError(
-                    f"Unterminated string at line {start_line}, column {start_column}"
-                )
-            value += self.advance()
-
-        if self.current_char() != quote:
-            raise LexerError(
-                f"Unterminated string at line {start_line}, column {start_column}"
-            )
-
-        self.advance()
-        self.add_token(TokenType.STRING, value, start_line, start_column)
+        position += 1
+        self.add_token(TokenType.STRING, value, line_number, column)
+        return position
 
     def is_operator_start(self, char):
         return any(op.startswith(char) for op in OPERATORS)
 
-    def tokenize_operator(self):
-        start_line = self.line
-        start_column = self.column
+    def tokenize_operator(self, line, position, line_number, column):
+        two_char = line[position:position + 2]
 
-        two_char = (self.current_char() or "") + (self.peek_char() or "")
         if two_char in OPERATORS:
-            self.advance()
-            self.advance()
-            self.add_token(TokenType.OPERATOR, two_char, start_line, start_column)
-            return
+            self.add_token(TokenType.OPERATOR, two_char, line_number, column)
+            return position + 2
 
-        one_char = self.current_char()
+        one_char = line[position]
+
         if one_char in OPERATORS:
-            self.advance()
-            self.add_token(TokenType.OPERATOR, one_char, start_line, start_column)
-            return
+            self.add_token(TokenType.OPERATOR, one_char, line_number, column)
+            return position + 1
 
-        raise LexerError(
-            f"Invalid operator at line {self.line}, column {self.column}"
-        )
+        raise LexerError(f"Invalid operator at line {line_number}, column {column}")
 
 
 def tokenize(source: str):

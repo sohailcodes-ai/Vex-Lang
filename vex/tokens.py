@@ -13,6 +13,8 @@ class TokenType(Enum):
     LEFT_PAREN = "LEFT_PAREN"
     RIGHT_PAREN = "RIGHT_PAREN"
     NEWLINE = "NEWLINE"
+    INDENT = "INDENT"
+    DEDENT = "DEDENT"
     EOF = "EOF"
 
 

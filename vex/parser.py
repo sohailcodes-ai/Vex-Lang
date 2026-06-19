@@ -29,12 +29,6 @@ class Parser:
             return self.tokens[-1]
         return self.tokens[self.position]
 
-    def peek(self):
-        next_position = self.position + 1
-        if next_position >= len(self.tokens):
-            return self.tokens[-1]
-        return self.tokens[next_position]
-
     def advance(self):
         token = self.current()
         self.position += 1
@@ -79,6 +73,21 @@ class Parser:
             self.skip_newlines()
 
         return Program(body)
+
+    def parse_block(self):
+        self.skip_newlines()
+        self.consume(TokenType.INDENT)
+
+        body = []
+
+        self.skip_newlines()
+
+        while not self.match(TokenType.DEDENT):
+            body.append(self.statement())
+            self.skip_newlines()
+
+        self.consume(TokenType.DEDENT)
+        return body
 
     def statement(self):
         token = self.current()
@@ -144,9 +153,8 @@ class Parser:
 
         self.consume(TokenType.RIGHT_PAREN)
         self.consume(TokenType.COLON)
-        self.skip_newlines()
 
-        body = [self.statement()]
+        body = self.parse_block()
 
         return FunctionDefinition(
             name=Identifier(name_token.value),
@@ -173,9 +181,9 @@ class Parser:
         )
 
         self.consume(TokenType.COLON)
-        self.skip_newlines()
 
-        body = [self.statement()]
+        body = self.parse_block()
+
         self.skip_newlines()
 
         else_body = None
@@ -183,8 +191,7 @@ class Parser:
         if self.match(TokenType.KEYWORD, "warna"):
             self.consume(TokenType.KEYWORD, "warna")
             self.consume(TokenType.COLON)
-            self.skip_newlines()
-            else_body = [self.statement()]
+            else_body = self.parse_block()
 
         return IfStatement(
             condition=condition,
@@ -206,9 +213,8 @@ class Parser:
         )
 
         self.consume(TokenType.COLON)
-        self.skip_newlines()
 
-        body = [self.statement()]
+        body = self.parse_block()
 
         return WhileStatement(
             condition=condition,
