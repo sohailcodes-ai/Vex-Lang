@@ -1,4 +1,4 @@
-# Vex Language 🔥
+# Vex Language ⚙️
 
 A compiler-backed programming language featuring Hinglish-inspired syntax, a custom lexer, parser, AST generator, bytecode compiler, virtual machine, Python execution backend, CLI tooling, testing infrastructure, PyPI distribution, and editor integrations.
 
