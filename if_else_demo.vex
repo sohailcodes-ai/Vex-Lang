@@ -1,0 +1,8 @@
+#mode hinglish
+
+age = 16
+
+agar age >= 18:
+    bolo("Adult")
+warna:
+    bolo("Minor")

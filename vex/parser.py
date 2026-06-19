@@ -134,7 +134,31 @@ class Parser:
                 f"at line {token.line}, column {token.column}"
             )
 
-        return IfStatement(condition=condition, body=body)
+        self.skip_newlines()
+
+        else_body = None
+
+        if self.match(TokenType.KEYWORD, "warna"):
+            self.consume(TokenType.KEYWORD, "warna")
+            self.consume(TokenType.COLON)
+            self.skip_newlines()
+
+            else_body = []
+
+            if self.match(TokenType.KEYWORD, "dikhao") or self.match(TokenType.KEYWORD, "bolo"):
+                else_body.append(self.print_statement())
+            else:
+                token = self.current()
+                raise ParserError(
+                    f"Expected statement inside else body but got {token.type.value}({token.value!r}) "
+                    f"at line {token.line}, column {token.column}"
+                )
+
+        return IfStatement(
+            condition=condition,
+            body=body,
+            else_body=else_body,
+        )
 
     def expression(self):
         return self.additive()
