@@ -13,6 +13,16 @@ class Instruction:
         return f"{self.op} {self.arg!r}"
 
 
+@dataclass
+class FunctionBytecode:
+    name: str
+    params: list[str]
+    instructions: list[Instruction]
+
+    def __repr__(self) -> str:
+        return f"<function {self.name}({', '.join(self.params)})>"
+
+
 class OpCode:
     LOAD_CONST = "LOAD_CONST"
     LOAD_NAME = "LOAD_NAME"
@@ -36,3 +46,5 @@ class OpCode:
 
     JUMP = "JUMP"
     JUMP_IF_FALSE = "JUMP_IF_FALSE"
+
+    CALL_FUNCTION = "CALL_FUNCTION"

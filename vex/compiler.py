@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from vex.bytecode import Instruction, OpCode
+from vex.bytecode import FunctionBytecode, Instruction, OpCode
 
 
 class VexCompilerError(Exception):
@@ -31,6 +31,32 @@ class VexCompiler:
         if name == "Program":
             for statement in node.body:
                 self.compile_node(statement)
+
+        elif name == "FunctionDefinition":
+            function_compiler = VexCompiler()
+
+            for statement in node.body:
+                function_compiler.compile_node(statement)
+
+            if not function_compiler.instructions or function_compiler.instructions[-1].op != OpCode.RETURN_VALUE:
+                function_compiler.emit(OpCode.LOAD_CONST, None)
+                function_compiler.emit(OpCode.RETURN_VALUE)
+
+            function = FunctionBytecode(
+                name=node.name.name,
+                params=[param.name for param in node.params],
+                instructions=function_compiler.instructions,
+            )
+
+            self.emit(OpCode.LOAD_CONST, function)
+            self.emit(OpCode.STORE_NAME, node.name.name)
+
+        elif name == "ReturnStatement":
+            if node.value is not None:
+                self.compile_node(node.value)
+            else:
+                self.emit(OpCode.LOAD_CONST, None)
+            self.emit(OpCode.RETURN_VALUE)
 
         elif name == "AssignmentStatement":
             self.compile_node(node.value)
@@ -62,6 +88,18 @@ class VexCompiler:
             else:
                 after_if = len(self.instructions)
                 self.patch(jump_if_false_index, after_if)
+
+        elif name == "CallExpression":
+            for argument in node.arguments:
+                self.compile_node(argument)
+
+            self.emit(
+                OpCode.CALL_FUNCTION,
+                {
+                    "name": node.callee.name,
+                    "argc": len(node.arguments),
+                },
+            )
 
         elif name == "NumberLiteral":
             value = node.value

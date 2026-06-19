@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from vex.bytecode import Instruction, OpCode
+from vex.bytecode import FunctionBytecode, Instruction, OpCode
 
 
 class VexVMError(Exception):
@@ -13,6 +13,7 @@ class VexVM:
     def __init__(self) -> None:
         self.stack: list[Any] = []
         self.globals: dict[str, Any] = {}
+        self.frames: list[dict[str, Any]] = []
         self.output: list[str] = []
 
     def push(self, value: Any) -> None:
@@ -23,7 +24,34 @@ class VexVM:
             raise VexVMError("Stack underflow")
         return self.stack.pop()
 
+    def current_locals(self) -> dict[str, Any] | None:
+        if not self.frames:
+            return None
+        return self.frames[-1]
+
+    def load_name(self, name: str) -> Any:
+        locals_ = self.current_locals()
+
+        if locals_ is not None and name in locals_:
+            return locals_[name]
+
+        if name in self.globals:
+            return self.globals[name]
+
+        raise VexVMError(f"Undefined variable: {name}")
+
+    def store_name(self, name: str, value: Any) -> None:
+        locals_ = self.current_locals()
+
+        if locals_ is not None:
+            locals_[name] = value
+        else:
+            self.globals[name] = value
+
     def run(self, instructions: list[Instruction]) -> Any:
+        return self.execute(instructions)
+
+    def execute(self, instructions: list[Instruction]) -> Any:
         ip = 0
 
         while ip < len(instructions):
@@ -35,13 +63,11 @@ class VexVM:
                 self.push(arg)
 
             elif op == OpCode.LOAD_NAME:
-                if arg not in self.globals:
-                    raise VexVMError(f"Undefined variable: {arg}")
-                self.push(self.globals[arg])
+                self.push(self.load_name(arg))
 
             elif op == OpCode.STORE_NAME:
                 value = self.pop()
-                self.globals[arg] = value
+                self.store_name(arg, value)
 
             elif op == OpCode.PRINT:
                 value = self.pop()
@@ -111,6 +137,31 @@ class VexVM:
                 if not condition:
                     ip = arg
                     continue
+
+            elif op == OpCode.CALL_FUNCTION:
+                function_name = arg["name"]
+                argc = arg["argc"]
+
+                function = self.load_name(function_name)
+
+                if not isinstance(function, FunctionBytecode):
+                    raise VexVMError(f"{function_name} is not callable")
+
+                if argc != len(function.params):
+                    raise VexVMError(
+                        f"{function_name} expected {len(function.params)} args but got {argc}"
+                    )
+
+                args = [self.pop() for _ in range(argc)]
+                args.reverse()
+
+                frame = dict(zip(function.params, args))
+                self.frames.append(frame)
+
+                result = self.execute(function.instructions)
+
+                self.frames.pop()
+                self.push(result)
 
             elif op == OpCode.RETURN_VALUE:
                 return self.pop()
