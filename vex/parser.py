@@ -4,6 +4,7 @@ from vex.ast_nodes import (
     Identifier,
     NumberLiteral,
     StringLiteral,
+    BooleanLiteral,
     BinaryExpression,
     CallExpression,
     PrintStatement,
@@ -237,6 +238,14 @@ class Parser:
 
     def primary(self):
         token = self.current()
+
+        if token.type == TokenType.KEYWORD and token.value == "sahi":
+            self.advance()
+            return BooleanLiteral(True)
+
+        if token.type == TokenType.KEYWORD and token.value == "galat":
+            self.advance()
+            return BooleanLiteral(False)
 
         if token.type == TokenType.STRING:
             self.advance()

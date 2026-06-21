@@ -1,0 +1,7 @@
+#mode hinglish
+
+verified = sahi
+blocked = galat
+
+bolo(verified)
+bolo(blocked)
