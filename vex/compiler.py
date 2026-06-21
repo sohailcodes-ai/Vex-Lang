@@ -42,7 +42,10 @@ class VexCompiler:
             for statement in node.body:
                 function_compiler.compile_node(statement)
 
-            if not function_compiler.instructions or function_compiler.instructions[-1].op != OpCode.RETURN_VALUE:
+            if (
+                not function_compiler.instructions
+                or function_compiler.instructions[-1].op != OpCode.RETURN_VALUE
+            ):
                 function_compiler.emit(OpCode.LOAD_CONST, None)
                 function_compiler.emit(OpCode.RETURN_VALUE)
 
@@ -79,6 +82,7 @@ class VexCompiler:
 
             if node.else_body:
                 jump_over_else_index = self.emit(OpCode.JUMP, None)
+
                 else_start = len(self.instructions)
                 self.patch(jump_if_false_index, else_start)
 
@@ -126,6 +130,29 @@ class VexCompiler:
                 raise VexCompilerError("'aage' can only be used inside a loop")
 
             self.emit(OpCode.JUMP, self.loop_start_stack[-1])
+
+        elif name == "LogicalExpression":
+            self.compile_node(node.left)
+            self.compile_node(node.right)
+
+            if node.operator == "aur":
+                self.emit(OpCode.LOGICAL_AND)
+            elif node.operator == "ya":
+                self.emit(OpCode.LOGICAL_OR)
+            else:
+                raise VexCompilerError(
+                    f"Unsupported logical operator for VM: {node.operator}"
+                )
+
+        elif name == "UnaryExpression":
+            self.compile_node(node.operand)
+
+            if node.operator == "nahi":
+                self.emit(OpCode.LOGICAL_NOT)
+            else:
+                raise VexCompilerError(
+                    f"Unsupported unary operator for VM: {node.operator}"
+                )
 
         elif name == "CallExpression":
             for argument in node.arguments:

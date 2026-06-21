@@ -58,7 +58,36 @@ class NullLiteral(ASTNode):
     def pretty(self, indent: int = 0) -> str:
         return f"{' ' * indent}NullLiteral(None)"
 
+@dataclass
+class LogicalExpression(ASTNode):
+    left: ASTNode
+    operator: str
+    right: ASTNode
 
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        return "\n".join(
+            [
+                f"{spaces}LogicalExpression({self.operator})",
+                self.left.pretty(indent + 2),
+                self.right.pretty(indent + 2),
+            ]
+        )
+
+
+@dataclass
+class UnaryExpression(ASTNode):
+    operator: str
+    operand: ASTNode
+
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        return "\n".join(
+            [
+                f"{spaces}UnaryExpression({self.operator})",
+                self.operand.pretty(indent + 2),
+            ]
+        )
 @dataclass
 class BinaryExpression(ASTNode):
     left: ASTNode

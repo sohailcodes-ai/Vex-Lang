@@ -128,6 +128,20 @@ class VexVM:
                 left = self.pop()
                 self.push(left >= right)
 
+            elif op == OpCode.LOGICAL_AND:
+                right = self.pop()
+                left = self.pop()
+                self.push(bool(left) and bool(right))
+
+            elif op == OpCode.LOGICAL_OR:
+                right = self.pop()
+                left = self.pop()
+                self.push(bool(left) or bool(right))
+
+            elif op == OpCode.LOGICAL_NOT:
+                value = self.pop()
+                self.push(not bool(value))
+
             elif op == OpCode.JUMP:
                 ip = arg
                 continue

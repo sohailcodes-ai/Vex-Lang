@@ -6,6 +6,8 @@ from vex.ast_nodes import (
     StringLiteral,
     BooleanLiteral,
     BinaryExpression,
+    LogicalExpression,
+    UnaryExpression,
     CallExpression,
     PrintStatement,
     IfStatement,
@@ -178,12 +180,7 @@ class Parser:
 
     def if_statement(self):
         self.consume(TokenType.KEYWORD, "agar")
-
-        left = self.expression()
-        operator = self.consume(TokenType.OPERATOR)
-        right = self.expression()
-
-        condition = BinaryExpression(left=left, operator=operator.value, right=right)
+        condition = self.expression()
 
         self.consume(TokenType.COLON)
         body = self.parse_block()
@@ -201,12 +198,7 @@ class Parser:
 
     def while_statement(self):
         self.consume(TokenType.KEYWORD, "jabtak")
-
-        left = self.expression()
-        operator = self.consume(TokenType.OPERATOR)
-        right = self.expression()
-
-        condition = BinaryExpression(left=left, operator=operator.value, right=right)
+        condition = self.expression()
 
         self.consume(TokenType.COLON)
         body = self.parse_block()
@@ -214,7 +206,59 @@ class Parser:
         return WhileStatement(condition=condition, body=body)
 
     def expression(self):
-        return self.additive()
+        return self.logical_or()
+
+    def logical_or(self):
+        node = self.logical_and()
+
+        while self.match(TokenType.KEYWORD, "ya"):
+            operator = self.advance()
+            right = self.logical_and()
+
+            node = LogicalExpression(
+                left=node,
+                operator=operator.value,
+                right=right,
+            )
+
+        return node
+
+    def logical_and(self):
+        node = self.comparison()
+
+        while self.match(TokenType.KEYWORD, "aur"):
+            operator = self.advance()
+            right = self.comparison()
+
+            node = LogicalExpression(
+                left=node,
+                operator=operator.value,
+                right=right,
+            )
+
+        return node
+
+    def comparison(self):
+        node = self.additive()
+
+        while (
+            self.match(TokenType.OPERATOR, "==")
+            or self.match(TokenType.OPERATOR, "!=")
+            or self.match(TokenType.OPERATOR, "<")
+            or self.match(TokenType.OPERATOR, "<=")
+            or self.match(TokenType.OPERATOR, ">")
+            or self.match(TokenType.OPERATOR, ">=")
+        ):
+            operator = self.advance()
+            right = self.additive()
+
+            node = BinaryExpression(
+                left=node,
+                operator=operator.value,
+                right=right,
+            )
+
+        return node
 
     def additive(self):
         node = self.multiplicative()
@@ -222,19 +266,41 @@ class Parser:
         while self.match(TokenType.OPERATOR, "+") or self.match(TokenType.OPERATOR, "-"):
             operator = self.advance()
             right = self.multiplicative()
-            node = BinaryExpression(left=node, operator=operator.value, right=right)
+
+            node = BinaryExpression(
+                left=node,
+                operator=operator.value,
+                right=right,
+            )
 
         return node
 
     def multiplicative(self):
-        node = self.primary()
+        node = self.unary()
 
         while self.match(TokenType.OPERATOR, "*") or self.match(TokenType.OPERATOR, "/"):
             operator = self.advance()
-            right = self.primary()
-            node = BinaryExpression(left=node, operator=operator.value, right=right)
+            right = self.unary()
+
+            node = BinaryExpression(
+                left=node,
+                operator=operator.value,
+                right=right,
+            )
 
         return node
+
+    def unary(self):
+        if self.match(TokenType.KEYWORD, "nahi"):
+            operator = self.advance()
+            operand = self.unary()
+
+            return UnaryExpression(
+                operator=operator.value,
+                operand=operand,
+            )
+
+        return self.primary()
 
     def primary(self):
         token = self.current()

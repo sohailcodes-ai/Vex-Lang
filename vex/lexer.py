@@ -18,6 +18,9 @@ KEYWORDS = {
     "khali",
     "rok",
     "aage",
+    "aur",
+    "ya",
+    "nahi",
 }
 
 

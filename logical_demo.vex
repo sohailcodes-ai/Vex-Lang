@@ -1,0 +1,7 @@
+#mode hinglish
+
+verified = sahi
+premium = galat
+
+agar verified aur nahi premium:
+    bolo("Allowed")
