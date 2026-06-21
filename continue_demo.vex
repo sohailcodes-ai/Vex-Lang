@@ -1,0 +1,13 @@
+#mode hinglish
+
+x = 0
+
+jabtak x < 5:
+    x = x + 1
+
+    agar x == 3:
+        aage
+
+    bolo(x)
+
+bolo("Done")
