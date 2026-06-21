@@ -12,6 +12,8 @@ from vex.ast_nodes import (
     AssignmentStatement,
     FunctionDefinition,
     ReturnStatement,
+    BreakStatement,
+    ContinueStatement,
 )
 
 
@@ -36,28 +38,22 @@ class Parser:
 
     def match(self, token_type, value=None):
         token = self.current()
-
         if token.type != token_type:
             return False
-
         if value is not None and token.value != value:
             return False
-
         return True
 
     def consume(self, token_type, value=None):
         token = self.current()
-
         if not self.match(token_type, value):
             expected = token_type.value
             if value is not None:
                 expected += f"({value})"
-
             raise ParserError(
                 f"Expected {expected} but got {token.type.value}({token.value!r}) "
                 f"at line {token.line}, column {token.column}"
             )
-
         return self.advance()
 
     def skip_newlines(self):
@@ -79,7 +75,6 @@ class Parser:
         self.consume(TokenType.INDENT)
 
         body = []
-
         self.skip_newlines()
 
         while not self.match(TokenType.DEDENT):
@@ -106,6 +101,12 @@ class Parser:
 
         if token.type == TokenType.KEYWORD and token.value == "wapas":
             return self.return_statement()
+
+        if token.type == TokenType.KEYWORD and token.value == "rok":
+            return self.break_statement()
+
+        if token.type == TokenType.KEYWORD and token.value == "aage":
+            return self.continue_statement()
 
         if token.type == TokenType.IDENTIFIER:
             return self.assignment_statement()
@@ -134,7 +135,6 @@ class Parser:
 
     def function_definition(self):
         self.consume(TokenType.KEYWORD, "kaam")
-
         name_token = self.consume(TokenType.IDENTIFIER)
         self.consume(TokenType.LEFT_PAREN)
 
@@ -167,6 +167,14 @@ class Parser:
         value = self.expression()
         return ReturnStatement(value)
 
+    def break_statement(self):
+        self.consume(TokenType.KEYWORD, "rok")
+        return BreakStatement()
+
+    def continue_statement(self):
+        self.consume(TokenType.KEYWORD, "aage")
+        return ContinueStatement()
+
     def if_statement(self):
         self.consume(TokenType.KEYWORD, "agar")
 
@@ -174,14 +182,9 @@ class Parser:
         operator = self.consume(TokenType.OPERATOR)
         right = self.expression()
 
-        condition = BinaryExpression(
-            left=left,
-            operator=operator.value,
-            right=right,
-        )
+        condition = BinaryExpression(left=left, operator=operator.value, right=right)
 
         self.consume(TokenType.COLON)
-
         body = self.parse_block()
 
         self.skip_newlines()
@@ -193,11 +196,7 @@ class Parser:
             self.consume(TokenType.COLON)
             else_body = self.parse_block()
 
-        return IfStatement(
-            condition=condition,
-            body=body,
-            else_body=else_body,
-        )
+        return IfStatement(condition=condition, body=body, else_body=else_body)
 
     def while_statement(self):
         self.consume(TokenType.KEYWORD, "jabtak")
@@ -206,20 +205,12 @@ class Parser:
         operator = self.consume(TokenType.OPERATOR)
         right = self.expression()
 
-        condition = BinaryExpression(
-            left=left,
-            operator=operator.value,
-            right=right,
-        )
+        condition = BinaryExpression(left=left, operator=operator.value, right=right)
 
         self.consume(TokenType.COLON)
-
         body = self.parse_block()
 
-        return WhileStatement(
-            condition=condition,
-            body=body,
-        )
+        return WhileStatement(condition=condition, body=body)
 
     def expression(self):
         return self.additive()
@@ -230,11 +221,7 @@ class Parser:
         while self.match(TokenType.OPERATOR, "+") or self.match(TokenType.OPERATOR, "-"):
             operator = self.advance()
             right = self.multiplicative()
-            node = BinaryExpression(
-                left=node,
-                operator=operator.value,
-                right=right,
-            )
+            node = BinaryExpression(left=node, operator=operator.value, right=right)
 
         return node
 
@@ -244,11 +231,7 @@ class Parser:
         while self.match(TokenType.OPERATOR, "*") or self.match(TokenType.OPERATOR, "/"):
             operator = self.advance()
             right = self.primary()
-            node = BinaryExpression(
-                left=node,
-                operator=operator.value,
-                right=right,
-            )
+            node = BinaryExpression(left=node, operator=operator.value, right=right)
 
         return node
 
@@ -269,7 +252,6 @@ class Parser:
 
             if self.match(TokenType.LEFT_PAREN):
                 self.advance()
-
                 arguments = []
 
                 if not self.match(TokenType.RIGHT_PAREN):
@@ -284,10 +266,7 @@ class Parser:
 
                 self.consume(TokenType.RIGHT_PAREN)
 
-                return CallExpression(
-                    callee=identifier,
-                    arguments=arguments,
-                )
+                return CallExpression(callee=identifier, arguments=arguments)
 
             return identifier
 

@@ -16,6 +16,8 @@ KEYWORDS = {
     "sahi",
     "galat",
     "khali",
+    "rok",
+    "aage",
 }
 
 

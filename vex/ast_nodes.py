@@ -147,6 +147,16 @@ class FunctionDefinition(ASTNode):
 
 
 @dataclass
+class BreakStatement(ASTNode):
+    def pretty(self, indent: int = 0) -> str:
+        return f"{' ' * indent}BreakStatement"
+
+
+@dataclass
+class ContinueStatement(ASTNode):
+    def pretty(self, indent: int = 0) -> str:
+        return f"{' ' * indent}ContinueStatement"
+@dataclass
 class WhileStatement(ASTNode):
     condition: ASTNode
     body: List[ASTNode] = field(default_factory=list)

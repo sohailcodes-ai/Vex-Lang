@@ -12,6 +12,8 @@ class VexCompilerError(Exception):
 class VexCompiler:
     def __init__(self) -> None:
         self.instructions: list[Instruction] = []
+        self.loop_start_stack: list[int] = []
+        self.loop_break_stack: list[list[int]] = []
 
     def emit(self, op: str, arg: Any = None) -> int:
         self.instructions.append(Instruction(op, arg))
@@ -22,6 +24,8 @@ class VexCompiler:
 
     def compile(self, ast: Any) -> list[Instruction]:
         self.instructions = []
+        self.loop_start_stack = []
+        self.loop_break_stack = []
         self.compile_node(ast)
         return self.instructions
 
@@ -68,7 +72,6 @@ class VexCompiler:
 
         elif name == "IfStatement":
             self.compile_node(node.condition)
-
             jump_if_false_index = self.emit(OpCode.JUMP_IF_FALSE, None)
 
             for statement in node.body:
@@ -76,7 +79,6 @@ class VexCompiler:
 
             if node.else_body:
                 jump_over_else_index = self.emit(OpCode.JUMP, None)
-
                 else_start = len(self.instructions)
                 self.patch(jump_if_false_index, else_start)
 
@@ -92,8 +94,10 @@ class VexCompiler:
         elif name == "WhileStatement":
             loop_start = len(self.instructions)
 
-            self.compile_node(node.condition)
+            self.loop_start_stack.append(loop_start)
+            self.loop_break_stack.append([])
 
+            self.compile_node(node.condition)
             jump_if_false_index = self.emit(OpCode.JUMP_IF_FALSE, None)
 
             for statement in node.body:
@@ -103,6 +107,25 @@ class VexCompiler:
 
             loop_end = len(self.instructions)
             self.patch(jump_if_false_index, loop_end)
+
+            break_jumps = self.loop_break_stack.pop()
+            self.loop_start_stack.pop()
+
+            for break_index in break_jumps:
+                self.patch(break_index, loop_end)
+
+        elif name == "BreakStatement":
+            if not self.loop_break_stack:
+                raise VexCompilerError("'rok' can only be used inside a loop")
+
+            break_jump_index = self.emit(OpCode.JUMP, None)
+            self.loop_break_stack[-1].append(break_jump_index)
+
+        elif name == "ContinueStatement":
+            if not self.loop_start_stack:
+                raise VexCompilerError("'aage' can only be used inside a loop")
+
+            self.emit(OpCode.JUMP, self.loop_start_stack[-1])
 
         elif name == "CallExpression":
             for argument in node.arguments:
