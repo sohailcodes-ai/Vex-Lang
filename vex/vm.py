@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from vex.bytecode import FunctionBytecode, Instruction, OpCode
+from vex.builtins import BUILTINS
 
 
 class VexVMError(Exception):
@@ -37,6 +38,9 @@ class VexVM:
 
         if name in self.globals:
             return self.globals[name]
+
+        if name in BUILTINS:
+            return BUILTINS[name]
 
         raise VexVMError(f"Undefined variable: {name}")
 
@@ -170,6 +174,19 @@ class VexVM:
                 function_name = arg["name"]
                 argc = arg["argc"]
 
+                args = [self.pop() for _ in range(argc)]
+                args.reverse()
+
+                if function_name in BUILTINS:
+                    try:
+                        result = BUILTINS[function_name](*args)
+                    except Exception as error:
+                        raise VexVMError(f"Builtin error in {function_name}: {error}")
+
+                    self.push(result)
+                    ip += 1
+                    continue
+
                 function = self.load_name(function_name)
 
                 if not isinstance(function, FunctionBytecode):
@@ -179,9 +196,6 @@ class VexVM:
                     raise VexVMError(
                         f"{function_name} expected {len(function.params)} args but got {argc}"
                     )
-
-                args = [self.pop() for _ in range(argc)]
-                args.reverse()
 
                 frame = dict(zip(function.params, args))
                 self.frames.append(frame)
