@@ -65,7 +65,6 @@ class Lexer:
                 continue
 
             self.handle_indent(indent, line_number)
-
             self.tokenize_line(stripped, line_number, indent + 1)
             self.add_token(TokenType.NEWLINE, "\\n", line_number, len(raw_line) + 1)
 
@@ -106,7 +105,12 @@ class Lexer:
                 break
 
             if char.isalpha() or char == "_":
-                position = self.tokenize_identifier_or_keyword(line, position, line_number, column)
+                position = self.tokenize_identifier_or_keyword(
+                    line,
+                    position,
+                    line_number,
+                    column,
+                )
                 continue
 
             if char.isdigit():
@@ -134,6 +138,21 @@ class Lexer:
 
             if char == ")":
                 self.add_token(TokenType.RIGHT_PAREN, char, line_number, column)
+                position += 1
+                continue
+
+            if char == "[":
+                self.add_token(TokenType.LEFT_BRACKET, char, line_number, column)
+                position += 1
+                continue
+
+            if char == "]":
+                self.add_token(TokenType.RIGHT_BRACKET, char, line_number, column)
+                position += 1
+                continue
+
+            if char == ".":
+                self.add_token(TokenType.DOT, char, line_number, column)
                 position += 1
                 continue
 
@@ -166,6 +185,7 @@ class Lexer:
 
         if position < len(line) and line[position] == ".":
             position += 1
+
             while position < len(line) and line[position].isdigit():
                 position += 1
 

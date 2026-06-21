@@ -142,6 +142,20 @@ class VexVM:
                 value = self.pop()
                 self.push(not bool(value))
 
+            elif op == OpCode.BUILD_LIST:
+                elements = [self.pop() for _ in range(arg)]
+                elements.reverse()
+                self.push(elements)
+
+            elif op == OpCode.GET_INDEX:
+                index = self.pop()
+                collection = self.pop()
+
+                try:
+                    self.push(collection[index])
+                except (IndexError, TypeError):
+                    raise VexVMError(f"Invalid index access: {collection}[{index}]")
+
             elif op == OpCode.JUMP:
                 ip = arg
                 continue

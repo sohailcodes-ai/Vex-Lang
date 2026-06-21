@@ -8,6 +8,8 @@ from vex.ast_nodes import (
     BinaryExpression,
     LogicalExpression,
     UnaryExpression,
+    ListLiteral,
+    IndexExpression,
     CallExpression,
     PrintStatement,
     IfStatement,
@@ -321,29 +323,68 @@ class Parser:
             self.advance()
             return NumberLiteral(token.value)
 
-        if token.type == TokenType.IDENTIFIER:
-            identifier = Identifier(token.value)
+        if token.type == TokenType.LEFT_BRACKET:
             self.advance()
 
-            if self.match(TokenType.LEFT_PAREN):
-                self.advance()
-                arguments = []
+            elements = []
 
-                if not self.match(TokenType.RIGHT_PAREN):
-                    while True:
-                        arguments.append(self.expression())
+            if not self.match(TokenType.RIGHT_BRACKET):
+                while True:
+                    elements.append(self.expression())
 
-                        if self.match(TokenType.COMMA):
-                            self.advance()
-                            continue
+                    if self.match(TokenType.COMMA):
+                        self.advance()
+                        continue
 
-                        break
+                    break
 
-                self.consume(TokenType.RIGHT_PAREN)
+            self.consume(TokenType.RIGHT_BRACKET)
 
-                return CallExpression(callee=identifier, arguments=arguments)
+            return ListLiteral(elements)
 
-            return identifier
+        if token.type == TokenType.IDENTIFIER:
+            node = Identifier(token.value)
+            self.advance()
+
+            while True:
+                if self.match(TokenType.LEFT_BRACKET):
+                    self.advance()
+
+                    index = self.expression()
+
+                    self.consume(TokenType.RIGHT_BRACKET)
+
+                    node = IndexExpression(
+                        collection=node,
+                        index=index,
+                    )
+                    continue
+
+                if self.match(TokenType.LEFT_PAREN):
+                    self.advance()
+                    arguments = []
+
+                    if not self.match(TokenType.RIGHT_PAREN):
+                        while True:
+                            arguments.append(self.expression())
+
+                            if self.match(TokenType.COMMA):
+                                self.advance()
+                                continue
+
+                            break
+
+                    self.consume(TokenType.RIGHT_PAREN)
+
+                    node = CallExpression(
+                        callee=node,
+                        arguments=arguments,
+                    )
+                    continue
+
+                break
+
+            return node
 
         if token.type == TokenType.LEFT_PAREN:
             self.advance()

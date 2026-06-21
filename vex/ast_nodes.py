@@ -58,36 +58,7 @@ class NullLiteral(ASTNode):
     def pretty(self, indent: int = 0) -> str:
         return f"{' ' * indent}NullLiteral(None)"
 
-@dataclass
-class LogicalExpression(ASTNode):
-    left: ASTNode
-    operator: str
-    right: ASTNode
 
-    def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return "\n".join(
-            [
-                f"{spaces}LogicalExpression({self.operator})",
-                self.left.pretty(indent + 2),
-                self.right.pretty(indent + 2),
-            ]
-        )
-
-
-@dataclass
-class UnaryExpression(ASTNode):
-    operator: str
-    operand: ASTNode
-
-    def pretty(self, indent: int = 0) -> str:
-        spaces = " " * indent
-        return "\n".join(
-            [
-                f"{spaces}UnaryExpression({self.operator})",
-                self.operand.pretty(indent + 2),
-            ]
-        )
 @dataclass
 class BinaryExpression(ASTNode):
     left: ASTNode
@@ -99,6 +70,62 @@ class BinaryExpression(ASTNode):
             f"{' ' * indent}BinaryExpression({self.operator})",
             self.left.pretty(indent + 2),
             self.right.pretty(indent + 2),
+        ])
+
+
+@dataclass
+class LogicalExpression(ASTNode):
+    left: ASTNode
+    operator: str
+    right: ASTNode
+
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        return "\n".join([
+            f"{spaces}LogicalExpression({self.operator})",
+            self.left.pretty(indent + 2),
+            self.right.pretty(indent + 2),
+        ])
+
+
+@dataclass
+class UnaryExpression(ASTNode):
+    operator: str
+    operand: ASTNode
+
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        return "\n".join([
+            f"{spaces}UnaryExpression({self.operator})",
+            self.operand.pretty(indent + 2),
+        ])
+
+
+@dataclass
+class ListLiteral(ASTNode):
+    elements: List[ASTNode] = field(default_factory=list)
+
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        lines = [f"{spaces}ListLiteral"]
+
+        for element in self.elements:
+            lines.append(element.pretty(indent + 2))
+
+        return "\n".join(lines)
+
+
+@dataclass
+class IndexExpression(ASTNode):
+    collection: ASTNode
+    index: ASTNode
+
+    def pretty(self, indent: int = 0) -> str:
+        spaces = " " * indent
+        return "\n".join([
+            f"{spaces}IndexExpression",
+            self.collection.pretty(indent + 2),
+            self.index.pretty(indent + 2),
         ])
 
 
@@ -185,6 +212,8 @@ class BreakStatement(ASTNode):
 class ContinueStatement(ASTNode):
     def pretty(self, indent: int = 0) -> str:
         return f"{' ' * indent}ContinueStatement"
+
+
 @dataclass
 class WhileStatement(ASTNode):
     condition: ASTNode

@@ -16,7 +16,9 @@ class TokenType(Enum):
     INDENT = "INDENT"
     DEDENT = "DEDENT"
     EOF = "EOF"
-
+    LEFT_BRACKET = "LEFT_BRACKET"
+    RIGHT_BRACKET = "RIGHT_BRACKET"
+    DOT = "DOT"
 
 @dataclass
 class Token:

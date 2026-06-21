@@ -154,6 +154,17 @@ class VexCompiler:
                     f"Unsupported unary operator for VM: {node.operator}"
                 )
 
+        elif name == "ListLiteral":
+            for element in node.elements:
+                self.compile_node(element)
+
+            self.emit(OpCode.BUILD_LIST, len(node.elements))
+
+        elif name == "IndexExpression":
+            self.compile_node(node.collection)
+            self.compile_node(node.index)
+            self.emit(OpCode.GET_INDEX)
+
         elif name == "CallExpression":
             for argument in node.arguments:
                 self.compile_node(argument)
