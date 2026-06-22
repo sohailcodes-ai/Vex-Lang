@@ -154,6 +154,15 @@ class PrintStatement(ASTNode):
             self.value.pretty(indent + 2),
         ])
 
+@dataclass
+class ExpressionStatement(ASTNode):
+    expression: ASTNode
+
+    def pretty(self, indent: int = 0) -> str:
+        return "\n".join([
+            f"{' ' * indent}ExpressionStatement",
+            self.expression.pretty(indent + 2),
+        ])
 
 @dataclass
 class AssignmentStatement(ASTNode):

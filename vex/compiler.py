@@ -65,6 +65,10 @@ class VexCompiler:
                 self.emit(OpCode.LOAD_CONST, None)
             self.emit(OpCode.RETURN_VALUE)
 
+        elif name == "ExpressionStatement":
+            self.compile_node(node.expression)
+            self.emit(OpCode.POP_TOP)
+
         elif name == "AssignmentStatement":
             self.compile_node(node.value)
             self.emit(OpCode.STORE_NAME, node.target.name)

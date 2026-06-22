@@ -15,6 +15,7 @@ from vex.ast_nodes import (
     IfStatement,
     WhileStatement,
     AssignmentStatement,
+    ExpressionStatement,
     FunctionDefinition,
     ReturnStatement,
     BreakStatement,
@@ -35,6 +36,12 @@ class Parser:
         if self.position >= len(self.tokens):
             return self.tokens[-1]
         return self.tokens[self.position]
+
+    def peek(self):
+        next_pos = self.position + 1
+        if next_pos >= len(self.tokens):
+            return self.tokens[-1]
+        return self.tokens[next_pos]
 
     def advance(self):
         token = self.current()
@@ -114,7 +121,11 @@ class Parser:
             return self.continue_statement()
 
         if token.type == TokenType.IDENTIFIER:
-            return self.assignment_statement()
+            if self.peek().type == TokenType.OPERATOR and self.peek().value == "=":
+                return self.assignment_statement()
+
+            expression = self.expression()
+            return ExpressionStatement(expression)
 
         raise ParserError(
             f"Unexpected token {token.type.value}({token.value!r}) "
@@ -339,7 +350,6 @@ class Parser:
                     break
 
             self.consume(TokenType.RIGHT_BRACKET)
-
             return ListLiteral(elements)
 
         if token.type == TokenType.IDENTIFIER:
@@ -349,9 +359,7 @@ class Parser:
             while True:
                 if self.match(TokenType.LEFT_BRACKET):
                     self.advance()
-
                     index = self.expression()
-
                     self.consume(TokenType.RIGHT_BRACKET)
 
                     node = IndexExpression(
